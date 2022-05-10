@@ -1,0 +1,127 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+
+<input type="button" value="Ürünleri Getir" onclick="GetAllProduct()"/>
+<input type="button" value="Yeni Ekle" onclick="showCreateModel()" />
+<br />
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Product Name</th>
+            <th scope="col">Update</th>
+            <th scope="col">Delete</th>
+        </tr>
+    </thead>
+    <tbody id="ProductBody">
+    </tbody>
+</table>
+
+<div class="modal fade" id="AddProductModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add Product</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+          <input type="text" id="AddProduct" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="createBtn" onclick="AddProduct()" class="btn btn-primary" style="display:none">Add</button>
+                <button type="button" id="updateBtn" onclick="UpdateProduct()" class="btn btn-primary" style="display:none">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var updateProductId = 0;
+
+    $(document).ready(function () {
+        GetAllProduct();
+    });
+    function GetAllProduct() {
+        $.ajax({
+            url: '/Product/GetAllProduct',
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                $('#ProductBody').empty();
+                $.each(data, function (key, value) {
+                    var tableRow = '';
+                    tableRow += '<tr>'
+                    tableRow += '<td>' + value.productName + '</td>';
+                    tableRow += ' <td><input type="button" value="Update" onclick="showUpdateModal(' + value.id + ',\'' + value.productName+'\')" /></td>';
+                    tableRow += ' <td><input type="button" value="Delete" onclick="Delete(' + value.id + ')" /></td>';
+                    tableRow += '</tr>'
+                    $('#ProductBody').append(tableRow);
+                });
+            }
+        });
+    }
+    function AddProduct() {
+        $('#AddProductModal').modal('toggle');
+        var ProductName = $('#AddProduct').val();
+        $.ajax({
+            url: '/Product/AddProduct',
+            type: 'POST',
+            data: { ProductName: ProductName },
+            dataType: 'json',
+            success: function (data) {
+
+                GetAllProduct();
+            }
+        });
+    }
+
+    function UpdateProduct() {
+        $('#AddProductModal').modal('toggle');
+        var ProductName = $('#AddProduct').val();
+        $.ajax({
+            url: '/Product/UpdateProduct',
+            type: 'POST',
+            data: {
+                ProductName: ProductName,
+                Id: updateProductId
+            },
+            dataType: 'json',
+            success: function (data) {
+
+                GetAllProduct();
+            }
+        });
+    }
+    function showUpdateModal(Id,ProductName) {
+        updateProductId = Id;
+        $("#AddProductModal").modal('show');
+        $('#AddProduct').val(ProductName);
+        $("#updateBtn").show();
+        $("#createBtn").hide();
+    }
+    function showCreateModel() {
+        $('#AddProduct').val('');
+        $("#AddProductModal").modal('show');
+        $("#createBtn").show();
+        $("#updateBtn").hide();
+    }
+    function Delete(Id) {
+   
+        $.ajax({
+            url: '/Product/DeleteProduct',
+            type: 'POST',
+            data: { Id:Id},
+            dataType: 'json',
+            success: function (data) {
+              
+                GetAllProduct();
+            }
+        });
+    }
+</script>
